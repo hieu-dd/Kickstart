@@ -26,6 +26,7 @@ beforeEach(async () => {
 });
 
 describe('Kickstart test', async () => {
+
     it('deploy campaign and factory', async () => {
         const manager = await campaign.methods.manager().call();
         assert.ok(campaign.options.address);
@@ -33,6 +34,16 @@ describe('Kickstart test', async () => {
     });
 
     it('process request', async () => {
+
+        let oldBalance = await web3.eth.getBalance(accounts[3]);
+
+        let balance = parseInt(web3.utils.fromWei(
+            oldBalance,
+            'ether'
+        ));
+        // currently acc3 balance
+        assert(balance == 100);
+
         await campaign.methods.contribute().send({
             from: accounts[2],
             value: web3.utils.toWei('10', 'ether')
@@ -55,11 +66,11 @@ describe('Kickstart test', async () => {
         });
 
         let newBalance = await web3.eth.getBalance(accounts[3]);
-
-        let balance = parseFloat(web3.utils.fromWei(
+        // currently acc3 balance when receive eth from campaign
+        balance = parseInt(web3.utils.fromWei(
             newBalance,
             'ether'
         ));
-        assert(balance > 104.9);
+        assert(balance == 105);
     });
 })
