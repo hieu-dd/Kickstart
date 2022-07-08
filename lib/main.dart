@@ -1,4 +1,4 @@
-import 'package:first_flutter_dapp/detail.dart';
+import 'package:kick_start/detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'campaign_factory.dart';

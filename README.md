@@ -1,4 +1,4 @@
-# first_flutter_dapp
+# kick_start
 
 A new Flutter project with smart contract
 
