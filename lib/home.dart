@@ -124,6 +124,15 @@ class _HomePageState extends State<HomePage> {
                     createCampaign();
                   },
                   child: const Text("Create campaign")),
+              TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      "/detail",
+                      arguments: "0x1234",
+                    );
+                  },
+                  child: const Text("Detail")),
             ],
           ),
         ),
