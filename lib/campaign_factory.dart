@@ -1,102 +1,98 @@
 import 'dart:convert';
 import 'dart:core';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:web_socket_channel/io.dart';
 
 class CampaignFactory with ChangeNotifier {
-  String campaigns = "";
-  bool isLoading = false;
+  Client httpClient = Client();
 
-  final String _rpcUrl = "http://127.0.0.1:7545";
-  final String _wsUrl = "ws://127.0.0.1:7545/";
+  final String blockchainUrl =
+      "https://rinkeby.infura.io/v3/4e577288c5b24f17a04beab17cf9c959";
 
-  final String _privateKey =
-      "0e7bfcff063b1b1f3de2b70b3a7c16a0464d1e38c0ac2c3ced5b390e0cf3d3b1";
+  Web3Client? ethClient;
 
-  Web3Client? _client;
-  String? _abiCode;
+  bool _loading = false;
 
-  Credentials? _credentials;
-  EthereumAddress? _contractAddress;
-  EthereumAddress? _ownAddress;
-  DeployedContract? _contract;
+  bool get loading => _loading;
 
-  ContractFunction? _createCampaign;
-  ContractFunction? _getCampaigns;
+  List<dynamic> _campaigns = [];
 
-  CampaignFactory() {
-    init();
+  List<dynamic> get campaigns {
+    if (_campaigns.isEmpty) {
+      syncCampaigns();
+    }
+    return _campaigns;
   }
 
-  Future<void> init() async {
-    _client = Web3Client(_rpcUrl, Client(), socketConnector: () {;
-      return IOWebSocketChannel.connect(_wsUrl).cast<String>();
-    });
+  Future<DeployedContract> getContract() async {
+    dynamic factoryString = await rootBundle
+        .loadString("contracts/build/contracts/CampaignFactory.json");
+    dynamic factory = jsonDecode(factoryString);
+    dynamic abi = factory["abi"];
+    String contractAddress = "0x09e083de8e4f766d7727ba74812cda6addc00dfe";
+    final contract = DeployedContract(
+        ContractAbi.fromJson(
+            jsonEncode(abi), factory["contractName"].toString()),
+        EthereumAddress.fromHex(contractAddress));
 
-    await getAbi();
-    await getCredentials();
-    await getDeployedContract();
+    return contract;
   }
 
-  Future<void> getAbi() async {
-    String abiStringFile =
-    await rootBundle.loadString("contracts/build/contracts/CampaignFactory.json");
-    var jsonAbi = jsonDecode(abiStringFile);
-    _abiCode = jsonEncode(jsonAbi["abi"]);
-
-    _contractAddress =
-        EthereumAddress.fromHex(jsonAbi["networks"]["5777"]["address"]);
+  Future<List<dynamic>> callFunction(String name) async {
+    ethClient = ethClient ?? Web3Client(blockchainUrl, httpClient);
+    final contract = await getContract();
+    final function = contract.function(name);
+    final result = await ethClient!
+        .call(contract: contract, function: function, params: []);
+    return result;
   }
 
-  Future<void> getCredentials() async {
-    _credentials = await _client!.credentialsFromPrivateKey(_privateKey);
-    _ownAddress = await _credentials!.extractAddress();
-  }
-
-  Future<void> getDeployedContract() async {
-    _contract = DeployedContract(
-        ContractAbi.fromJson(_abiCode!, "CampaignFactory"), _contractAddress!);
-    _createCampaign = _contract!.function("createCampaign");
-    _getCampaigns = _contract!.function("getCampaigns");
-    await getCampaigns();
-  }
-
-  getCampaigns() async {
-    try {
-      isLoading = true;
-      notifyListeners();
-      campaigns = await _client!.call(
-          contract: _contract!,
-          function: _getCampaigns!,
-          params: []).toString();
-    } catch (e) {
-      print(e);
-    } finally {
-      isLoading = false;
+  Future<void> syncCampaigns() async {
+    dynamic result = await callFunction("getCampaigns");
+    _campaigns = result[0];
+    if (_campaigns.isNotEmpty) {
       notifyListeners();
     }
   }
 
-  createCampaign() async {
-    try {
-      isLoading = true;
+  Future<void> createCampaign(int minimum) async {
+    _loading = true;
+    notifyListeners();
+    final accs = await requestAccounts();
+    if (accs.isNotEmpty) {
+      //obtain private key for write operation
+      // Credentials key = EthPrivateKey.fromHex(accs.first);
+      Credentials key = EthPrivateKey.fromHex(
+          "b2e11f7499b795e4bc1579269096020d8dc757fe8493cd7b9e9b700c703db080");
+      print(accs);
+
+      //obtain our contract from abi in json file
+      final contract = await getContract();
+
+      // extract function from json file
+      final function = contract.function("createCampaign");
+
+      //send transaction using the our private key, function and contract
+      await ethClient!.sendTransaction(
+          key,
+          Transaction.callContract(
+              contract: contract,
+              function: function,
+              parameters: [BigInt.from(minimum)]),
+          chainId: 4);
+      await syncCampaigns();
+      _loading = false;
       notifyListeners();
-      await _client!.sendTransaction(
-        _credentials!,
-        Transaction.callContract(
-          contract: _contract!,
-          function: _createCampaign!,
-          parameters: [100],
-        ),
-      );
-    } catch (e) {
-      print(e);
-    } finally {
-      await getCampaigns();
+    } else {
+      _loading = false;
+      notifyListeners();
+      throw Exception("Need accounts");
     }
+  }
+
+  Future<List<String>> requestAccounts() async {
+    return ["b2e11f7499b795e4bc1579269096020d8dc757fe8493cd7b9e9b700c703db080"];
   }
 }

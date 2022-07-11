@@ -38,6 +38,7 @@ dependencies:
   web3dart: ^2.1.4
   web_socket_channel: ^2.1.0
   provider: ^5.0.0
+  flutter_web3: ^2.1.9
 
 dev_dependencies:
   flutter_test:

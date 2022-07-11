@@ -1,3 +1,4 @@
+import 'package:kick_start/create_campaign.dart';
 import 'package:kick_start/detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,11 +15,12 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => CampaignFactory(),
       child: MaterialApp(
-        title: 'Note Taking DApp',
+        title: 'KickStart',
         theme: ThemeData.dark(),
         routes: {
-          "/": (_) => HomePage(),
+          HomePage.route: (_) => HomePage(),
           "/detail": (_) => Detail(),
+          CreateCampaignScreen.route: (_) => CreateCampaignScreen()
         },
       ),
     );
