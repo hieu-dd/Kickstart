@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kick_start/campaign_factory.dart';
+import 'package:kick_start/provider/campaign_factory.dart';
 import 'package:provider/provider.dart';
 
 class CreateCampaignScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class _CreateCampaignScreenState extends State<CreateCampaignScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final campaignFactory = context.watch<CampaignFactory>();
+    final campaignFactory = context.watch<CampaignFactoryProvider>();
     final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(

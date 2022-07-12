@@ -7,6 +7,7 @@ contract CampaignFactory {
         address deploy = new Campaign(minimum, msg.sender);
         deployedCampaigns.push(deploy);
     }
+
     function getCampaigns() public view returns (address[]){
         return deployedCampaigns;
     }
@@ -55,11 +56,11 @@ contract Campaign {
         address recipient
     ) public retricted {
         Request memory newRequest = Request({
-        description: description,
-        value: value,
-        recipient: recipient,
-        complete: false,
-        approvalCount: 0
+        description : description,
+        value : value,
+        recipient : recipient,
+        complete : false,
+        approvalCount : 0
         });
         requests.push(newRequest);
     }
@@ -76,5 +77,21 @@ contract Campaign {
         require(request.approvalCount > approversCount / 2);
         request.recipient.transfer(request.value);
         request.complete = true;
+    }
+
+    function getSummary() public view returns (
+        uint,
+        uint,
+        uint,
+        uint,
+        address
+    ){
+        return (
+        minimumContribute,
+        this.balance,
+        requests.length,
+        approversCount,
+        manager
+        );
     }
 }
