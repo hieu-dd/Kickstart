@@ -48,6 +48,7 @@ class _CampaignShowState extends State<CampaignShow> {
                       Row(
                         children: [
                           Flexible(
+                            fit: FlexFit.tight,
                             child: infoItem(
                               context,
                               summary[4],
@@ -56,6 +57,7 @@ class _CampaignShowState extends State<CampaignShow> {
                             ),
                           ),
                           Flexible(
+                            fit: FlexFit.tight,
                             child: infoItem(
                               context,
                               summary[0].toString() + " wei",
@@ -68,9 +70,11 @@ class _CampaignShowState extends State<CampaignShow> {
                       Row(
                         children: [
                           Flexible(
+                            fit: FlexFit.tight,
                             child: InkWell(
                               onTap: () {
-                                Navigator.of(context).pushNamed(ViewRequests.route);
+                                Navigator.of(context)
+                                    .pushNamed(ViewRequests.route);
                               },
                               child: infoItem(
                                 context,
@@ -81,17 +85,19 @@ class _CampaignShowState extends State<CampaignShow> {
                             ),
                           ),
                           Flexible(
+                              fit: FlexFit.tight,
                               child: infoItem(
-                            context,
-                            summary[3],
-                            "Number of approvers",
-                            "Number of people who has donated for this contract",
-                          ))
+                                context,
+                                summary[3],
+                                "Number of approvers",
+                                "Number of people who has donated for this contract",
+                              ))
                         ],
                       ),
                       Row(
                         children: [
                           Flexible(
+                            fit: FlexFit.tight,
                             child: infoItem(
                               context,
                               summary[1],
@@ -99,7 +105,7 @@ class _CampaignShowState extends State<CampaignShow> {
                               "This balance is how much money has left to spend",
                             ),
                           ),
-                          const Flexible(child: SizedBox())
+                          const Flexible(fit: FlexFit.tight, child: SizedBox())
                         ],
                       ),
                       const SizedBox(
