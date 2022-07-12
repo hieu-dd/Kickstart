@@ -9,15 +9,35 @@ import 'package:web3dart/web3dart.dart';
 import 'eth.dart';
 
 class CampaignProvider with ChangeNotifier {
+  static CampaignProvider Instance = CampaignProvider();
+
+  String _contractAddress = "";
   DeployedContract? _contract;
   List<dynamic> _summary = [];
   bool _loading = false;
+  List<dynamic> _requests = [];
+
+  List<dynamic> get requests {
+    if (_requests.isEmpty) {
+      getRequests();
+    }
+    return _requests;
+  }
 
   bool get loading => _loading;
 
   List<dynamic> get summary => _summary;
 
-  Future<DeployedContract> getContract(String contractAddress) async {
+  void setContractAddress(String add) {
+    _contract = null;
+    _contractAddress = add;
+    _summary = [];
+    _loading = false;
+    _requests = [];
+    notifyListeners();
+  }
+
+  Future<DeployedContract> getContract() async {
     if (_contract == null) {
       dynamic factoryString = await rootBundle
           .loadString("contracts/build/contracts/Campaign.json");
@@ -26,34 +46,34 @@ class CampaignProvider with ChangeNotifier {
       _contract = DeployedContract(
           ContractAbi.fromJson(
               jsonEncode(abi), factory["contractName"].toString()),
-          EthereumAddress.fromHex(contractAddress));
+          EthereumAddress.fromHex(_contractAddress));
     }
     return _contract!;
   }
 
   Future<List<dynamic>> callFunction(
-      String contractAddress, String name) async {
-    final contract = await getContract(contractAddress);
+      {required String name, List<dynamic> params = const []}) async {
+    final contract = await getContract();
     final function = contract.function(name);
     final result = await ETH.ethClient
-        .call(contract: contract, function: function, params: []);
+        .call(contract: contract, function: function, params: params);
     return result;
   }
 
-  Future<void> getSummary(String contractAddress) async {
+  Future<void> getSummary() async {
     _loading = true;
     notifyListeners();
-    dynamic result = await callFunction(contractAddress, "getSummary");
+    dynamic result = await callFunction(name: "getSummary");
     _summary = result;
     _loading = false;
     notifyListeners();
   }
 
-  Future<void> contribute(String contractAddress, BigInt wei) async {
+  Future<void> contribute(BigInt wei) async {
     _loading = true;
     notifyListeners();
     //obtain our contract from abi in json file
-    final contract = await getContract(contractAddress);
+    final contract = await getContract();
 
     // extract function from json file
     final function = contract.function("contribute");
@@ -70,6 +90,18 @@ class CampaignProvider with ChangeNotifier {
       chainId: 4,
     );
     sleep(const Duration(seconds: 1));
-    await getSummary(contractAddress);
+    await getSummary();
+  }
+
+  Future<void> getRequests() async {
+    _loading = true;
+    _requests = [];
+    notifyListeners();
+    final BigInt requestCount = _summary[2];
+    for (var i = 0; i < requestCount.toInt(); i++) {
+      dynamic result = await callFunction(name: "requests", params: [BigInt.from(i)]);
+      _requests.add(result);
+    }
+    notifyListeners();
   }
 }

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:kick_start/provider/campaign_factory.dart';
+import 'package:kick_start/provider/campaign_provider.dart';
+import 'package:kick_start/provider/wallet.dart';
 import 'package:kick_start/screen/create_campaign.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:provider/provider.dart';
@@ -58,12 +60,10 @@ class _HomePageState extends State<HomePage> {
                     return ListTile(
                       title: Text(campaign.toString()),
                       subtitle: InkWell(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            CampaignShow.route,
-                            arguments: campaign,
-                          );
+                        onTap: () async {
+                          final a = CustomWallet.getCredentials(0);
+                          CampaignProvider.Instance.setContractAddress(campaign.toString());
+                          Navigator.pushNamed(context, CampaignShow.route);
                         },
                         child: const Text(
                           "View campaign",

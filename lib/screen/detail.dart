@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kick_start/provider/campaign_provider.dart';
+import 'package:kick_start/screen/view_requests.dart';
 import 'package:provider/provider.dart';
 
 class CampaignShow extends StatefulWidget {
@@ -14,24 +15,21 @@ class _CampaignShowState extends State<CampaignShow> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
-      final address = ModalRoute.of(context)!.settings.arguments.toString();
       final campaignProvider =
           Provider.of<CampaignProvider>(context, listen: false);
-      campaignProvider.getSummary(address);
+      campaignProvider.getSummary();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final address = ModalRoute.of(context)!.settings.arguments.toString();
-    print(address);
     final _amountController = TextEditingController();
     final campaignProvider = context.watch<CampaignProvider>();
     final summary = campaignProvider.summary;
     final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(
-        body: campaignProvider.loading && summary.length > 4
+        body: campaignProvider.loading && summary.isEmpty
             ? const Center(
                 child: CircularProgressIndicator(),
               )
@@ -70,11 +68,16 @@ class _CampaignShowState extends State<CampaignShow> {
                       Row(
                         children: [
                           Flexible(
-                            child: infoItem(
-                              context,
-                              summary[2],
-                              "Number of request ",
-                              "A request tries to withdraw money from the contract",
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).pushNamed(ViewRequests.route);
+                              },
+                              child: infoItem(
+                                context,
+                                summary[2],
+                                "Number of request ",
+                                "A request tries to withdraw money from the contract",
+                              ),
                             ),
                           ),
                           Flexible(
@@ -112,7 +115,6 @@ class _CampaignShowState extends State<CampaignShow> {
                       ElevatedButton(
                         onPressed: () {
                           campaignProvider.contribute(
-                            address,
                             BigInt.from(
                               int.parse(_amountController.text),
                             ),
